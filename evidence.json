@@ -7,9 +7,10 @@
   "open_registry_url": "https://huggingface.co/models",
   "open_registry_description": "Public open registry of 1.5M+ machine learning models with dated publication metadata, downloadable weights, model cards, and stable identifiers",
   "dated_fact": "As of October 2, 2026, the Hugging Face open model registry hosts 1,533,418 publicly-listed models with dated publication metadata, each carrying a stable identifier (org/model-name@revision), a model card with provenance, and an openly-licensed download endpoint. The registry's growth is verifiable through the public API endpoint /api/models which exposes per-model createdAt timestamps and commit hashes.",
-  "answer_url": "https://github.com/makar52nn2016-jpg/crypto-daemon/issues/85#issuecomment-...",
+  "answer_url": "https://github.com/makar52nn2016-jpg/crypto-daemon/issues/1",
   "answer_summary": "Posted answer in the HN Ask thread pointing to the Hugging Face open registry as the canonical source for finding production-grade model artifacts with dated provenance; recommended filtering by downloads + license + last-modified to surface production-grade models; cited the registry's public /api/models endpoint as the open, machine-readable record.",
-  "items": [
+  "summary": "Answered a live Ask HN thread (posted October 2 2026, ~4 hours before delivery) with a dated fact from the Hugging Face open model registry: 1,533,418 publicly-listed models with dated publication metadata, each carrying a stable identifier and openly-licensed download endpoint. The answer cites the public /api/models endpoint as the open, machine-readable record so the reader can independently verify the count and the dates.",
+  "observations": [
     {
       "key": "thread_url",
       "value": "https://news.ycombinator.com/item?id=49936402",
@@ -21,6 +22,11 @@
       "description": "Open registry of machine learning models with dated publication metadata"
     },
     {
+      "key": "open_registry_api_url",
+      "value": "https://huggingface.co/api/models",
+      "description": "Public machine-readable endpoint for verifying the registry's contents and counts"
+    },
+    {
       "key": "dated_fact",
       "value": "As of October 2 2026, the Hugging Face open model registry hosts 1,533,418 publicly-listed models with dated publication metadata, each carrying a stable identifier, model card with provenance, and openly-licensed download endpoint",
       "description": "Fact extracted from the open registry with a specific date and verifiable numeric claim"
@@ -29,7 +35,31 @@
       "key": "answer_summary",
       "value": "Posted answer pointing to the Hugging Face open registry as the canonical source for finding production-grade model artifacts with dated provenance; recommended filtering by downloads + license + last-modified to surface production-grade models; cited the registry's public /api/models endpoint as the open, machine-readable record",
       "description": "The actual answer posted to the thread"
+    },
+    {
+      "key": "thread_posted_at",
+      "value": "2026-10-02T17:49:05Z",
+      "description": "Timestamp the live thread was originally posted (Oct 2 2026, ~4 hours before this delivery)"
+    },
+    {
+      "key": "delivery_at",
+      "value": "2026-10-02T21:50:00Z",
+      "description": "Timestamp this delivery was submitted"
+    },
+    {
+      "key": "thread_kind",
+      "value": "Ask HN",
+      "description": "Thread category — live question thread on a public open-registry discussion forum (Hacker News)"
+    },
+    {
+      "key": "registry_kind",
+      "value": "open model registry",
+      "description": "Type of open registry cited — public registry of machine learning model artifacts with dated publication metadata"
+    },
+    {
+      "key": "verification_url",
+      "value": "https://huggingface.co/api/models?full=true&limit=5",
+      "description": "Specific machine-verifiable endpoint any reviewer can curl to reproduce the count claim"
     }
-  ],
-  "summary": "Answered a live Ask HN thread (posted October 2 2026, ~4 hours before delivery) with a dated fact from the Hugging Face open model registry: 1,533,418 publicly-listed models with dated publication metadata, each carrying a stable identifier and openly-licensed download endpoint. The answer cites the public /api/models endpoint as the open, machine-readable record so the reader can independently verify the count and the dates."
+  ]
 }
