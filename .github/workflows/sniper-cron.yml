@@ -1,0 +1,47 @@
+name: Sniper Cron Trigger
+
+# Triggers NFT sniper every 5 minutes via Vercel HTTP endpoint.
+# Vercel Cron has 1-day limit on Hobby plan; GHA has 6h/month on free but
+# 5-minute schedule is fine for repos with cached cadence.
+#
+# Alternative to Vercel Cron. Switch over if Vercel cron quota exhausted.
+
+on:
+  schedule:
+    # every 5 minutes (Vercel Cron limits 2x/day on Hobby; GHA allows this)
+    - cron: '*/5 * * * *'
+  workflow_dispatch: {}  # allow manual trigger
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sniper-cron
+  cancel-in-progress: true
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Trigger Vercel sniper
+        run: |
+          RESPONSE=$(curl -sS -X POST \
+            -H "Accept: application/json" \
+            -H "User-Agent: gha-sniper-cron" \
+            --max-time 90 \
+            "${{ secrets.SNIPER_URL || 'https://base-airdrop-radar.vercel.app' }}/api/sniper/run" \
+            || echo "CURL_FAILED")
+          echo "RESPONSE=$RESPONSE" | head -c 4000
+          # Extract success + minted for log
+          echo "$RESPONSE" | python3 -c "
+          import sys, json
+          try:
+            d = json.loads(sys.stdin.read())
+            results = d.get('results', []) or []
+            minted = sum(1 for r in results if r.get('success'))
+            attempted = len(results)
+            print(f\"  SUCCESS={d.get('success')}  SCANNED={d.get('scanned', 0)}  ATTEMPTED={attempted}  MINTED={minted}\")
+          except Exception as e:
+            print(f'Parse error: {e}')
+          "
