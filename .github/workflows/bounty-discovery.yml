@@ -1,0 +1,88 @@
+name: Bounty Auto-Discovery
+
+on:
+  schedule:
+    - cron: '5 * * * *'  # hourly at :05
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bounty-discovery
+  cancel-in-progress: true
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run discovery
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          mkdir -p discoveries
+          python3 - <<'PYEOF'
+          import json, os, re, urllib.request
+          from datetime import datetime, timezone
+          GH_TOKEN = os.environ.get("GH_TOKEN", "")
+          if not GH_TOKEN:
+              print("GH_TOKEN not set")
+              exit(1)
+          def gh(path, params=None):
+              url = "https://api.github.com" + path
+              if params:
+                  url += "?" + "&".join(f"{k}={v}" for k, v in params.items())
+              req = urllib.request.Request(url, headers={
+                  "Authorization": f"token {GH_TOKEN}",
+                  "Accept": "application/vnd.github.v3+json",
+                  "User-Agent": "bounty-discovery",
+              })
+              try:
+                  import urllib.error
+                  with urllib.request.urlopen(req, timeout=20) as r:
+                      return json.loads(r.read().decode())
+              except Exception as e:
+                  return {"error": str(e)[:100]}
+          REPOS = ["AstralDeep/LETS", "AstralDeep/AstralPrimitives",
+                   "AstralDeep/AstralProjection", "AstralDeep/AstralDeep",
+                   "AstralDeep/AstralPlane"]
+          findings = []
+          for repo in REPOS:
+              r = gh(f"/repos/{repo}/issues",
+                     {"state": "open", "labels": "bounty",
+                      "sort": "created", "direction": "desc", "per_page": "30"})
+              if not isinstance(r, list): continue
+              for i in r:
+                  if i.get("pull_request"): continue
+                  labels = [l.get("name","") for l in i.get("labels", [])]
+                  pts_label = next((l for l in labels if "points:" in l.lower()), "")
+                  m = re.search(r'points:(\d+)', pts_label, re.I)
+                  findings.append({
+                      "repo": repo, "issue": i.get("number"),
+                      "title": (i.get("title") or "")[:100],
+                      "points": int(m.group(1)) if m else 0,
+                      "comments": i.get("comments", 0),
+                      "created": i.get("created_at"),
+                      "url": i.get("html_url"),
+                  })
+          findings.sort(key=lambda x: (-x["points"], x["comments"]))
+          with open("discoveries/latest.json", "w") as f:
+              json.dump({"scanned_at": datetime.now(timezone.utc).isoformat(),
+                          "total": len(findings),
+                          "top_picks": findings[:15]}, f, indent=2, ensure_ascii=False)
+          print(f"Found {len(findings)} bounty issues")
+          PYEOF
+      - name: Commit
+        run: |
+          if [[ -f discoveries/latest.json ]]; then
+            git config user.email "agent@makar52nn2016-jpg"
+            git config user.name "Bounty Discovery Bot"
+            git add discoveries/latest.json
+            git commit -m "auto: hourly bounty discovery at $(date -u +'%Y-%m-%dT%H:%M')" || echo "no changes"
+            git push
+          fi
